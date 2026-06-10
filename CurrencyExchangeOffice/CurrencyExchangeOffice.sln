@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WCF-Service", "WCF-Service", "{69FA3F3C-27D3-4E9B-A4C1-5D96C501D2EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyExchangeOffice.Contracts", "WCF-Service\CurrencyExchangeOffice.Contracts\CurrencyExchangeOffice.Contracts.csproj", "{14EFAAB4-01E2-4D8D-B736-101675E5C5FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyExchangeOffice.Service", "WCF-Service\CurrencyExchangeOffice.Service\CurrencyExchangeOffice.Service.csproj", "{1052CDA5-4437-4A43-BC47-FF5EA8BA0F4D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client-Application", "Client-Application", "{F486381C-E052-42BC-9032-B935C040456C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyExchangeOffice.Client", "Client-Application\CurrencyExchangeOffice.Client\CurrencyExchangeOffice.Client.csproj", "{FB02E21E-377D-475B-96D1-A73AE4AD0AC1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14EFAAB4-01E2-4D8D-B736-101675E5C5FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14EFAAB4-01E2-4D8D-B736-101675E5C5FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14EFAAB4-01E2-4D8D-B736-101675E5C5FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14EFAAB4-01E2-4D8D-B736-101675E5C5FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1052CDA5-4437-4A43-BC47-FF5EA8BA0F4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1052CDA5-4437-4A43-BC47-FF5EA8BA0F4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1052CDA5-4437-4A43-BC47-FF5EA8BA0F4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1052CDA5-4437-4A43-BC47-FF5EA8BA0F4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB02E21E-377D-475B-96D1-A73AE4AD0AC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB02E21E-377D-475B-96D1-A73AE4AD0AC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB02E21E-377D-475B-96D1-A73AE4AD0AC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB02E21E-377D-475B-96D1-A73AE4AD0AC1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{14EFAAB4-01E2-4D8D-B736-101675E5C5FD} = {69FA3F3C-27D3-4E9B-A4C1-5D96C501D2EB}
+		{1052CDA5-4437-4A43-BC47-FF5EA8BA0F4D} = {69FA3F3C-27D3-4E9B-A4C1-5D96C501D2EB}
+		{FB02E21E-377D-475B-96D1-A73AE4AD0AC1} = {F486381C-E052-42BC-9032-B935C040456C}
+	EndGlobalSection
+EndGlobal
