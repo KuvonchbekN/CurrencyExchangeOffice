@@ -115,25 +115,40 @@ public class MainWindow : Window
 
     private Control BuildLoginTab()
     {
-        var loginButton = PrimaryButton("Log in");
+        var loginButton = PrimaryButton("Sign in");
         loginButton.Click += async (_, _) => await LoginAsync();
 
-        var registerButton = SecondaryButton("Register");
+        var registerButton = PrimaryButton("Create account");
         registerButton.Click += async (_, _) => await RegisterAsync();
 
-        var pingButton = SecondaryButton("Ping service");
+        var demoButton = SecondaryButton("Use demo account");
+        demoButton.Click += async (_, _) => await LoginAsDemoAsync();
+
+        var pingButton = SecondaryButton("Check service");
         pingButton.Click += async (_, _) => await PingAsync();
 
-        return TwoColumn(
-            Section("Existing user",
-                Label("Username"), _loginUsername,
-                Label("Password"), _loginPassword,
-                Row(loginButton, pingButton)),
-            Section("New user",
-                Label("Username"), _registerUsername,
-                Label("Full name"), _registerFullName,
-                Label("Password"), _registerPassword,
-                registerButton));
+        return new StackPanel
+        {
+            Spacing = 16,
+            Children =
+            {
+                IntroPanel(
+                    "Account access",
+                    "Sign in with the demo account for presentation, or create a separate user to test registration."),
+                TwoColumn(
+                    Section("Sign in",
+                        FormField("Username", _loginUsername),
+                        FormField("Password", _loginPassword),
+                        Row(loginButton, demoButton, pingButton),
+                        MutedText("Demo: username demo, password demo123")),
+                    Section("Create account",
+                        FormField("Username", _registerUsername),
+                        FormField("Full name", _registerFullName),
+                        FormField("Password", _registerPassword),
+                        registerButton,
+                        MutedText("New accounts start with an empty PLN wallet. Use Top Up after registration.")))
+            }
+        };
     }
 
     private Control BuildWalletTab()
@@ -244,6 +259,13 @@ public class MainWindow : Window
             await RefreshWalletAsync();
             await RefreshHistoryAsync();
         });
+    }
+
+    private async Task LoginAsDemoAsync()
+    {
+        _loginUsername.Text = "demo";
+        _loginPassword.Text = "demo123";
+        await LoginAsync();
     }
 
     private async Task RegisterAsync()
@@ -495,6 +517,65 @@ public class MainWindow : Window
                 }
             }
         }.WithChildren(children);
+    }
+
+    private static Border IntroPanel(string title, string body)
+    {
+        return new Border
+        {
+            Background = new SolidColorBrush(Color.Parse("#eef4f1")),
+            BorderBrush = new SolidColorBrush(Color.Parse("#c7d9d1")),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(18, 14),
+            Child = new StackPanel
+            {
+                Spacing = 4,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = title,
+                        FontSize = 20,
+                        FontWeight = FontWeight.Bold,
+                        Foreground = new SolidColorBrush(Color.Parse("#24312f"))
+                    },
+                    new TextBlock
+                    {
+                        Text = body,
+                        TextWrapping = TextWrapping.Wrap,
+                        Foreground = new SolidColorBrush(Color.Parse("#465653"))
+                    }
+                }
+            }
+        };
+    }
+
+    private static StackPanel FormField(string label, TextBox textBox)
+    {
+        textBox.MinHeight = 38;
+        textBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+
+        return new StackPanel
+        {
+            Spacing = 4,
+            Children =
+            {
+                Label(label),
+                textBox
+            }
+        };
+    }
+
+    private static TextBlock MutedText(string text)
+    {
+        return new TextBlock
+        {
+            Text = text,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = new SolidColorBrush(Color.Parse("#68736f")),
+            FontSize = 13
+        };
     }
 
     private static Grid TwoColumn(Control left, Control right)
