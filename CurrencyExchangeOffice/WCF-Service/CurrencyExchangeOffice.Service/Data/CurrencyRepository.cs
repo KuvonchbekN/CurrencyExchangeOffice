@@ -74,9 +74,9 @@ public class CurrencyRepository
             userCommand.ExecuteNonQuery();
         }
 
-        UpsertBalance(connection, transaction, 1, "PLN", 10000m, replaceAmount: true);
-        UpsertBalance(connection, transaction, 1, "USD", 50m, replaceAmount: true);
-        UpsertBalance(connection, transaction, 1, "EUR", 25m, replaceAmount: true);
+        InsertBalanceIfMissing(connection, transaction, 1, "PLN", 10000m);
+        InsertBalanceIfMissing(connection, transaction, 1, "USD", 50m);
+        InsertBalanceIfMissing(connection, transaction, 1, "EUR", 25m);
 
         transaction.Commit();
     }
@@ -338,6 +338,25 @@ public class CurrencyRepository
               ON CONFLICT(UserId, CurrencyCode)
               DO UPDATE SET Amount = Amount + $amount, UpdatedAt = CURRENT_TIMESTAMP;
               """;
+        command.Parameters.AddWithValue("$userId", userId);
+        command.Parameters.AddWithValue("$currencyCode", currencyCode);
+        command.Parameters.AddWithValue("$amount", amount);
+        command.ExecuteNonQuery();
+    }
+
+    private static void InsertBalanceIfMissing(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        int userId,
+        string currencyCode,
+        decimal amount)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            INSERT OR IGNORE INTO Balances (UserId, CurrencyCode, Amount)
+            VALUES ($userId, $currencyCode, $amount);
+            """;
         command.Parameters.AddWithValue("$userId", userId);
         command.Parameters.AddWithValue("$currencyCode", currencyCode);
         command.Parameters.AddWithValue("$amount", amount);
