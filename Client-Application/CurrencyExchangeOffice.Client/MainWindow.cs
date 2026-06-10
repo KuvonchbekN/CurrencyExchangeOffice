@@ -33,7 +33,7 @@ public class MainWindow : Window
     private readonly ComboBox _sellCurrency = new();
     private readonly TextBox _sellAmount = new() { PlaceholderText = "Amount", Text = "10" };
 
-    private readonly ListBox _historyList = new() { MinHeight = 360 };
+    private readonly StackPanel _historyPanel = new() { MinHeight = 360, Spacing = 10 };
     private readonly ComboBox _historicalCurrency = new();
     private readonly TextBox _historicalStart = new() { PlaceholderText = "yyyy-mm-dd", Text = DateTime.Today.AddDays(-14).ToString("yyyy-MM-dd") };
     private readonly TextBox _historicalEnd = new() { PlaceholderText = "yyyy-mm-dd", Text = DateTime.Today.ToString("yyyy-MM-dd") };
@@ -208,7 +208,8 @@ public class MainWindow : Window
         button.Click += async (_, _) => await RefreshHistoryAsync();
 
         return Section("Transactions",
-            _historyList,
+            MutedText("Newest transactions appear first. Each item shows what changed in the wallet."),
+            _historyPanel,
             button);
     }
 
@@ -397,11 +398,156 @@ public class MainWindow : Window
         await RunUiAction(async () =>
         {
             var rows = await _service.GetTransactionHistoryAsync(_userId!.Value);
-            _historyList.ItemsSource = rows.Select(row =>
-                $"{row.CreatedAt:yyyy-MM-dd HH:mm}  {row.Type,-6}  {row.SourceAmount:F4} {row.SourceCurrency} -> {row.TargetAmount:F4} {row.TargetCurrency}  rate {row.Rate:F4}  {row.Description}")
-                .ToList();
+            _historyPanel.Children.Clear();
+
+            if (rows.Count == 0)
+            {
+                _historyPanel.Children.Add(MutedText("No transactions yet. Use Top Up or Buy / Sell to create the first entry."));
+            }
+
+            foreach (var row in rows)
+            {
+                _historyPanel.Children.Add(TransactionCard(row));
+            }
+
             SetStatus("Transaction history loaded.", true);
         });
+    }
+
+    private static Border TransactionCard(TransactionRow row)
+    {
+        var title = TransactionTitle(row);
+        var movement = TransactionMovement(row);
+        var rateNote = TransactionRateNote(row);
+        var accent = row.Type.ToUpperInvariant() switch
+        {
+            "TOP_UP" => "#2f7d4f",
+            "BUY" => "#24574c",
+            "SELL" => "#7a5a21",
+            _ => "#68736f"
+        };
+
+        var header = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("*,Auto")
+        };
+        header.Children.Add(new TextBlock
+        {
+            Text = title,
+            FontSize = 16,
+            FontWeight = FontWeight.Bold,
+            Foreground = new SolidColorBrush(Color.Parse("#24312f"))
+        });
+
+        var dateText = new TextBlock
+        {
+            Text = row.CreatedAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+            Foreground = new SolidColorBrush(Color.Parse("#68736f")),
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        Grid.SetColumn(dateText, 1);
+        header.Children.Add(dateText);
+
+        var details = new StackPanel
+        {
+            Spacing = 5,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = movement,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = new SolidColorBrush(Color.Parse("#35423f"))
+                },
+                new TextBlock
+                {
+                    Text = rateNote,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = new SolidColorBrush(Color.Parse("#68736f"))
+                },
+                new TextBlock
+                {
+                    Text = row.Description,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = new SolidColorBrush(Color.Parse("#68736f")),
+                    FontSize = 13
+                }
+            }
+        };
+
+        var accentBar = new Border
+        {
+            Background = new SolidColorBrush(Color.Parse(accent)),
+            CornerRadius = new CornerRadius(3)
+        };
+
+        var content = new StackPanel
+        {
+            Spacing = 8,
+            Children =
+            {
+                header,
+                details
+            }
+        };
+        Grid.SetColumn(content, 1);
+
+        var cardGrid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("6,*"),
+            ColumnSpacing = 12
+        };
+        cardGrid.Children.Add(accentBar);
+        cardGrid.Children.Add(content);
+
+        return new Border
+        {
+            Background = Brushes.White,
+            BorderBrush = new SolidColorBrush(Color.Parse("#d8d8d2")),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(14),
+            Child = cardGrid
+        };
+    }
+
+    private static string TransactionTitle(TransactionRow row)
+    {
+        return row.Type.ToUpperInvariant() switch
+        {
+            "TOP_UP" => $"Top-up {row.TargetCurrency}",
+            "BUY" => $"Bought {row.TargetCurrency}",
+            "SELL" => $"Sold {row.SourceCurrency}",
+            _ => row.Type
+        };
+    }
+
+    private static string TransactionMovement(TransactionRow row)
+    {
+        return row.Type.ToUpperInvariant() switch
+        {
+            "TOP_UP" => $"Added {FormatMoney(row.TargetAmount, row.TargetCurrency)} to the wallet.",
+            "BUY" => $"Spent {FormatMoney(row.SourceAmount, row.SourceCurrency)} and received {FormatMoney(row.TargetAmount, row.TargetCurrency)}.",
+            "SELL" => $"Sold {FormatMoney(row.SourceAmount, row.SourceCurrency)} and received {FormatMoney(row.TargetAmount, row.TargetCurrency)}.",
+            _ => $"{FormatMoney(row.SourceAmount, row.SourceCurrency)} -> {FormatMoney(row.TargetAmount, row.TargetCurrency)}"
+        };
+    }
+
+    private static string TransactionRateNote(TransactionRow row)
+    {
+        return row.Type.ToUpperInvariant() switch
+        {
+            "BUY" => $"Ask rate used: 1 {row.TargetCurrency} = {row.Rate:F4} PLN.",
+            "SELL" => $"Bid rate used: 1 {row.SourceCurrency} = {row.Rate:F4} PLN.",
+            "TOP_UP" => "No exchange rate was used.",
+            _ => $"Rate used: {row.Rate:F4}"
+        };
+    }
+
+    private static string FormatMoney(decimal amount, string currencyCode)
+    {
+        var decimals = currencyCode == "PLN" ? 2 : 4;
+        return $"{amount.ToString($"F{decimals}", CultureInfo.InvariantCulture)} {currencyCode}";
     }
 
     private async Task LoadHistoricalRatesAsync()
